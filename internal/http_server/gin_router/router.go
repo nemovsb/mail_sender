@@ -12,6 +12,12 @@ type Handler struct {
 	App app.App
 }
 
+func NewHandler(app app.App) Handler {
+	return Handler{
+		App: app,
+	}
+}
+
 func NewRouter(h Handler) (router *gin.Engine) {
 	router = gin.Default()
 

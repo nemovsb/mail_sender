@@ -3,13 +3,14 @@ package aggregator
 import (
 	"bytes"
 	"fmt"
+	"mail_sender/internal/app"
 	"text/template"
 )
 
 type Aggregator struct {
 }
 
-func (a Aggregator) Aggregate(recipient Recipient, HTMLPattern *string) (dataMail string, err error) {
+func (a Aggregator) Aggregate(recipient app.Recipient, HTMLPattern *string) (dataMail string, err error) {
 
 	tmpl, err := template.New("data").Parse(*HTMLPattern)
 	if err != nil {

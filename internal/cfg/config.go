@@ -5,8 +5,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -114,7 +114,7 @@ func GetConfig() (conf ConfigApp, err error) {
 		log.Fatal("Flag not parsed")
 	}
 
-	binFile, err := ioutil.ReadFile(configPath)
+	binFile, err := os.ReadFile(configPath)
 	if err != nil {
 		return conf, err
 	}
