@@ -34,7 +34,6 @@ func (s Sender) Send(mailAddr, dataMail string) error {
 	if err != nil {
 		return fmt.Errorf("send mail by smtp error: %s", err)
 	}
-	fmt.Println("Почта отправлена!")
 
 	return err
 }

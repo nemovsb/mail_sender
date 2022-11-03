@@ -9,9 +9,9 @@ type MockStorage struct {
 	templates  []string
 }
 
-func NewMockStorage() MockStorage {
+func NewMockStorage() *MockStorage {
 
-	recp := make([]app.Recipient, 10)
+	recp := []app.Recipient{}
 	recp = append(recp, app.Recipient{
 		MailAddr: "testtesttest9@mailtest.ru",
 		Name:     "Ivan",
@@ -22,6 +22,12 @@ func NewMockStorage() MockStorage {
 		MailAddr: "testtesttest8@mailtest.ru",
 		Name:     "Petr",
 		Surname:  "Petrov",
+		Birthday: "01.01.2001",
+	})
+	recp = append(recp, app.Recipient{
+		MailAddr: "nemoff.serega@mail.ru",
+		Name:     "Ser",
+		Surname:  "Serg",
 		Birthday: "01.01.2001",
 	})
 
@@ -49,16 +55,18 @@ func NewMockStorage() MockStorage {
 				<p>{{ .Birthday}}</p>
 			</body>
 		</html>`,
+
+		`Тестовое сообщение через golang.`,
 	}
-	return MockStorage{
+	return &MockStorage{
 		recipients: recp,
 		templates:  templs,
 	}
 }
 
-func (ms MockStorage) GetRecipients(mailAddrs []string) ([]app.Recipient, error) {
+func (ms *MockStorage) GetRecipients(mailAddrs []string) ([]app.Recipient, error) {
 
-	recipients := make([]app.Recipient, cap(mailAddrs))
+	recipients := []app.Recipient{}
 
 	for _, AddrSearch := range mailAddrs {
 
@@ -72,6 +80,31 @@ func (ms MockStorage) GetRecipients(mailAddrs []string) ([]app.Recipient, error)
 	return recipients, nil
 }
 
-func (ms MockStorage) GetTemplate(id uint) (string, error) {
+func (ms *MockStorage) GetTemplate(id uint) (string, error) {
 	return ms.templates[id], nil
+}
+
+func (ms *MockStorage) CreateRecipients(recipients []app.Recipient) uint {
+
+	var check bool = true
+	numElem := 0
+
+	for _, recp := range recipients {
+
+		for _, searchRecp := range ms.recipients {
+
+			check = (recp.MailAddr == searchRecp.MailAddr)
+			if check {
+				break
+			}
+
+		}
+		if !check {
+			ms.recipients = append(ms.recipients, recp)
+			numElem++
+		}
+	}
+
+	return uint(numElem)
+
 }

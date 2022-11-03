@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"mail_sender/internal/aggregator"
 	"mail_sender/internal/app"
@@ -12,10 +11,6 @@ import (
 	"mail_sender/internal/sender"
 	"mail_sender/internal/storage"
 	"os"
-	"os/signal"
-	"syscall"
-
-	group "github.com/oklog/run"
 )
 
 var ErrOsSignal = errors.New("got os signal")
@@ -32,38 +27,23 @@ func main() {
 	aggregator := aggregator.Aggregator{}
 
 	storage := storage.NewMockStorage()
+	log.Println("storage ready")
 
 	sender := sender.NewSender(config.Sender.From, config.Sender.Password, config.Sender.SmtpHost, config.Sender.SmtpPort)
+	log.Println("sender ready")
 
 	application := app.NewApp(storage, aggregator, sender)
+	log.Println("application ready")
 
 	handler := gin_router.NewHandler(application)
+	log.Println("handler ready")
 
 	router := gin_router.NewRouter(handler)
+	log.Println("router ready")
 
 	server := http_server.NewServer(servConfig, router)
+	log.Println("server ready")
 
-	var (
-		serviceGroup        group.Group
-		interruptionChannel = make(chan os.Signal, 1)
-	)
-
-	serviceGroup.Add(func() error {
-		signal.Notify(interruptionChannel, syscall.SIGINT, syscall.SIGTERM)
-		osSignal := <-interruptionChannel
-
-		return fmt.Errorf("%w: %s", ErrOsSignal, osSignal)
-	}, func(error) {
-		interruptionChannel <- syscall.SIGINT
-	})
-
-	serviceGroup.Add(func() error {
-		log.Println("HTTP API started")
-
-		return server.Run()
-	}, func(error) {
-		err = server.Shutdown()
-		log.Printf("shutdown Http Server error: %s", err)
-	})
+	server.Run()
 
 }

@@ -1,6 +1,7 @@
 package gin_router
 
 import (
+	"log"
 	"mail_sender/internal/app"
 	"mail_sender/internal/http_server"
 	"net/http"
@@ -27,13 +28,18 @@ func NewRouter(h Handler) (router *gin.Engine) {
 
 	}
 
+	recipient := router.Group("/recipient")
+	{
+		recipient.POST("/create", h.CreateRecipients)
+	}
+
 	return router
 }
 
 func (h Handler) Send(ctx *gin.Context) {
 
 	req := new(http_server.SendMailRequest)
-	if err := ctx.ShouldBind(req); err != nil {
+	if err := ctx.ShouldBindJSON(req); err != nil {
 		ctx.Status(http.StatusBadRequest)
 		err = ctx.Error(err)
 		return
@@ -42,8 +48,27 @@ func (h Handler) Send(ctx *gin.Context) {
 	if err := h.App.SendMails(req.Mails, req.TemplateId); err != nil {
 		ctx.Status(http.StatusInternalServerError)
 		err = ctx.Error(err)
+
+		log.Println(err)
 		return
 	}
 
 	ctx.Status(http.StatusOK)
+}
+
+func (h Handler) CreateRecipients(ctx *gin.Context) {
+
+	//fmt.Printf("--------------CHECK ctx.req:  %+v", ctx.Request)
+
+	req := new(http_server.CreateRecipientsRequest)
+	if err := ctx.ShouldBindJSON(req); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		err = ctx.Error(err)
+		return
+	}
+
+	res := h.App.CreateRecipients(req.Recipients)
+	ctx.JSON(http.StatusOK, gin.H{
+		"recipientsAdded": res,
+	})
 }

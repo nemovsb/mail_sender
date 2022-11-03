@@ -1,6 +1,8 @@
 package app
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type App struct {
 	Storage
@@ -11,6 +13,7 @@ type App struct {
 type Storage interface {
 	GetRecipients(mailAddrs []string) ([]Recipient, error)
 	GetTemplate(id uint) (string, error)
+	CreateRecipients(recipients []Recipient) uint
 }
 
 type Aggregator interface {
@@ -72,4 +75,10 @@ func (a App) SendMails(mailAddrs []string, templateId uint) error {
 	}
 
 	return err
+}
+
+func (a App) AddRecipients(recipients []Recipient) uint {
+
+	return a.Storage.CreateRecipients(recipients)
+
 }

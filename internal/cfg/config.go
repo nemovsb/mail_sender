@@ -99,7 +99,7 @@ func NewConfiguration(v *viper.Viper) (*ConfigApp, error) {
 		return nil, fmt.Errorf("%w: %s", ErrUnmarshalConfig, err)
 	}
 
-	fmt.Printf("My config: %+v", c)
+	//fmt.Printf("My config: %+v\n", c)
 
 	return &c, nil
 }

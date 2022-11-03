@@ -2,7 +2,6 @@ package http_server
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 )
 
@@ -29,7 +28,7 @@ func (s *Server) Shutdown() error {
 }
 
 func NewServer(conf ServerConfig, handler http.Handler) *Server {
-	fmt.Printf("Port : %s", fmt.Sprint(":"+conf.Port))
+	//fmt.Printf("Port : %s", fmt.Sprint(":"+conf.Port))
 	serv := http.Server{
 		Addr:    ":" + conf.Port,
 		Handler: handler,
