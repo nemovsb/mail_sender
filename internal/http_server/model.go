@@ -10,3 +10,7 @@ type SendMailRequest struct {
 type CreateRecipientsRequest struct {
 	Recipients []app.Recipient `form:"recipients"`
 }
+
+type CreateTemplateRequest struct {
+	Template string
+}

@@ -112,3 +112,16 @@ func (ms *MockStorage) CreateRecipients(recipients []app.Recipient) uint {
 func (ms *MockStorage) GetAllRecipients() []app.Recipient {
 	return ms.recipients
 }
+
+func (ms *MockStorage) CreateTemplate(template string) (id uint) {
+
+	ms.templates = append(ms.templates, template)
+
+	id = uint(len(ms.templates)) - 1
+
+	return id
+}
+
+func (ms *MockStorage) GetAllTemplates() []string {
+	return ms.templates
+}

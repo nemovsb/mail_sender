@@ -34,12 +34,18 @@ func NewRouter(h Handler) (router *gin.Engine) {
 		recipient.POST("/create", h.CreateRecipients)
 	}
 
+	template := router.Group("/template")
+	{
+		template.POST("/create", h.CreateTemplate)
+		template.GET("", h.GetAllTemplates)
+	}
 	return router
 }
 
 func (h Handler) Send(ctx *gin.Context) {
 
 	req := new(http_server.SendMailRequest)
+
 	if err := ctx.ShouldBindJSON(req); err != nil {
 		ctx.Status(http.StatusBadRequest)
 		err = ctx.Error(err)
@@ -59,8 +65,6 @@ func (h Handler) Send(ctx *gin.Context) {
 
 func (h Handler) CreateRecipients(ctx *gin.Context) {
 
-	//fmt.Printf("--------------CHECK ctx.req:  %+v", ctx.Request)
-
 	req := new(http_server.CreateRecipientsRequest)
 	if err := ctx.ShouldBindJSON(req); err != nil {
 		ctx.Status(http.StatusBadRequest)
@@ -77,5 +81,29 @@ func (h Handler) CreateRecipients(ctx *gin.Context) {
 func (h Handler) GetRecipients(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, h.App.GetAllRecipients())
+
+}
+func (h Handler) CreateTemplate(ctx *gin.Context) {
+
+	req := new(http_server.CreateTemplateRequest)
+	if err := ctx.ShouldBindJSON(req); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		err = ctx.Error(err)
+		return
+	}
+
+	id := h.App.CreateTemplate(req.Template)
+	ctx.JSON(http.StatusOK, gin.H{
+		"templateid": id,
+	})
+}
+
+func (h Handler) GetAllTemplates(ctx *gin.Context) {
+
+	templates := h.App.GetAllTemplates()
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"templates": templates,
+	})
 
 }

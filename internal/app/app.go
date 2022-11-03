@@ -11,10 +11,24 @@ type App struct {
 }
 
 type Storage interface {
+
+	//Get recipients by email-adresses
 	GetRecipients(mailAddrs []string) ([]Recipient, error)
+
+	//Get all recipients from storage
 	GetAllRecipients() []Recipient
+
+	//Get template by id
 	GetTemplate(id uint) (string, error)
+
+	//Get all templates from storage
+	GetAllTemplates() []string
+
+	//Create recipient
 	CreateRecipients(recipients []Recipient) uint
+
+	//Create template
+	CreateTemplate(string) (id uint)
 }
 
 type Aggregator interface {
@@ -79,11 +93,17 @@ func (a App) SendMails(mailAddrs []string, templateId uint) error {
 }
 
 func (a App) AddRecipients(recipients []Recipient) uint {
-
 	return a.Storage.CreateRecipients(recipients)
-
 }
 
 func (a App) GetAllRecipients() []Recipient {
 	return a.Storage.GetAllRecipients()
+}
+
+func (a App) GetAllTemplates() []string {
+	return a.Storage.GetAllTemplates()
+}
+
+func (a App) CreateTemplate(template string) (id uint) {
+	return a.Storage.CreateTemplate(template)
 }
