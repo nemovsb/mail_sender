@@ -12,6 +12,7 @@ type App struct {
 
 type Storage interface {
 	GetRecipients(mailAddrs []string) ([]Recipient, error)
+	GetAllRecipients() []Recipient
 	GetTemplate(id uint) (string, error)
 	CreateRecipients(recipients []Recipient) uint
 }
@@ -81,4 +82,8 @@ func (a App) AddRecipients(recipients []Recipient) uint {
 
 	return a.Storage.CreateRecipients(recipients)
 
+}
+
+func (a App) GetAllRecipients() []Recipient {
+	return a.Storage.GetAllRecipients()
 }

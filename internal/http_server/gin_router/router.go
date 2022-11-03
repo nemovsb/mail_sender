@@ -30,6 +30,7 @@ func NewRouter(h Handler) (router *gin.Engine) {
 
 	recipient := router.Group("/recipient")
 	{
+		recipient.GET("", h.GetRecipients)
 		recipient.POST("/create", h.CreateRecipients)
 	}
 
@@ -71,4 +72,10 @@ func (h Handler) CreateRecipients(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"recipientsAdded": res,
 	})
+}
+
+func (h Handler) GetRecipients(ctx *gin.Context) {
+
+	ctx.JSON(http.StatusOK, h.App.GetAllRecipients())
+
 }

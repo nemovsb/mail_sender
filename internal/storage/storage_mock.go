@@ -108,3 +108,7 @@ func (ms *MockStorage) CreateRecipients(recipients []app.Recipient) uint {
 	return uint(numElem)
 
 }
+
+func (ms *MockStorage) GetAllRecipients() []app.Recipient {
+	return ms.recipients
+}
