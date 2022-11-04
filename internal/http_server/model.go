@@ -1,10 +1,20 @@
 package http_server
 
-import "mail_sender/internal/app"
+import (
+	"mail_sender/internal/app"
+	"time"
+)
 
 type SendMailRequest struct {
-	Mails      []string `form:"mails"`
-	TemplateId uint     `form:"templateid"`
+	MailingSendId string   `form:"mailingsendid"`
+	Mails         []string `form:"mails"`
+	TemplateId    uint     `form:"templateid"`
+}
+
+type DeferSendMailRequest struct {
+	SendMailRequest
+
+	ExecTime time.Time `form:"exectime"`
 }
 
 type CreateRecipientsRequest struct {
@@ -13,4 +23,10 @@ type CreateRecipientsRequest struct {
 
 type CreateTemplateRequest struct {
 	Template string
+}
+
+type TrackParam struct {
+	From      string `form:"from"`
+	MailingId string `form:"mailingId"`
+	Event     string `form:"event"`
 }

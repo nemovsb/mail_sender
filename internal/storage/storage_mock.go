@@ -1,12 +1,15 @@
 package storage
 
 import (
+	"log"
 	"mail_sender/internal/app"
+	"time"
 )
 
 type MockStorage struct {
-	recipients []app.Recipient
-	templates  []string
+	recipients   []app.Recipient
+	templates    []string
+	mailingTasks []app.MailingTask
 }
 
 func NewMockStorage() *MockStorage {
@@ -124,4 +127,31 @@ func (ms *MockStorage) CreateTemplate(template string) (id uint) {
 
 func (ms *MockStorage) GetAllTemplates() []string {
 	return ms.templates
+}
+
+func (ms *MockStorage) AddMailingTask(task app.MailingTask) (SendingId string) {
+	ms.mailingTasks = append(ms.mailingTasks, task)
+
+	log.Printf("----AddMailingTask Tasks Added: --------\n%+v\n", ms.mailingTasks)
+
+	return task.MailingSendId
+}
+
+func (ms *MockStorage) GetMailingTasks() []app.MailingTask {
+
+	tasks := []app.MailingTask{}
+	for i, task := range ms.mailingTasks {
+
+		if time.Until(task.ExecTime) < time.Minute {
+
+			tasks = append(tasks, task)
+
+			ms.mailingTasks[i] = ms.mailingTasks[len(ms.mailingTasks)-1]
+			ms.mailingTasks[len(ms.mailingTasks)-1] = app.MailingTask{}
+			ms.mailingTasks = ms.mailingTasks[:len(ms.mailingTasks)-1]
+
+		}
+	}
+
+	return tasks
 }

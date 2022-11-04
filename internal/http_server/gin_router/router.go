@@ -25,6 +25,7 @@ func NewRouter(h Handler) (router *gin.Engine) {
 	mails := router.Group("/send")
 	{
 		mails.POST("", h.Send)
+		mails.POST("/defer", h.DeferSend)
 
 	}
 
@@ -39,7 +40,28 @@ func NewRouter(h Handler) (router *gin.Engine) {
 		template.POST("/create", h.CreateTemplate)
 		template.GET("", h.GetAllTemplates)
 	}
+
+	tracker := router.Group("/track")
+	{
+		tracker.GET("", h.Track)
+	}
+
 	return router
+}
+
+func (h Handler) Track(ctx *gin.Context) {
+
+	param := new(http_server.TrackParam)
+	if err := ctx.ShouldBind(param); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		err = ctx.Error(err)
+		return
+	}
+
+	h.App.Track(http_server.GetTrackParam(*param))
+
+	ctx.Status(http.StatusOK)
+
 }
 
 func (h Handler) Send(ctx *gin.Context) {
@@ -52,7 +74,7 @@ func (h Handler) Send(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.App.SendMails(req.Mails, req.TemplateId); err != nil {
+	if err := h.App.SendMails(req.MailingSendId, req.Mails, req.TemplateId); err != nil {
 		ctx.Status(http.StatusInternalServerError)
 		err = ctx.Error(err)
 
@@ -61,6 +83,26 @@ func (h Handler) Send(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusOK)
+}
+
+func (h Handler) DeferSend(ctx *gin.Context) {
+
+	req := new(http_server.DeferSendMailRequest)
+
+	if err := ctx.ShouldBindJSON(req); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		err = ctx.Error(err)
+		return
+	}
+
+	task := http_server.GetDeferMailingTask(*req)
+
+	mailingId := h.App.AddMailingTask(task)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"mailingSendId": mailingId,
+	})
+
 }
 
 func (h Handler) CreateRecipients(ctx *gin.Context) {

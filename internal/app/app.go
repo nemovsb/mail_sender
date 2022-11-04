@@ -2,12 +2,16 @@ package app
 
 import (
 	"fmt"
+	"log"
+	"sync"
+	"time"
 )
 
 type App struct {
 	Storage
 	Aggregator
 	Sender
+	Tracker
 }
 
 type Storage interface {
@@ -29,6 +33,10 @@ type Storage interface {
 
 	//Create template
 	CreateTemplate(string) (id uint)
+
+	AddMailingTask(MailingTask) string
+
+	GetMailingTasks() []MailingTask
 }
 
 type Aggregator interface {
@@ -36,14 +44,19 @@ type Aggregator interface {
 }
 
 type Sender interface {
-	Send(mailAddr, dataMail string) error
+	Send(mailingSendId, mailAddr, dataMail string) error
 }
 
-func NewApp(strg Storage, agr Aggregator, sendr Sender) App {
+type Tracker interface {
+	Track(TrackMailParam)
+}
+
+func NewApp(strg Storage, agr Aggregator, sendr Sender, tracker Tracker) App {
 	return App{
 		Storage:    strg,
 		Aggregator: agr,
 		Sender:     sendr,
+		Tracker:    tracker,
 	}
 }
 
@@ -59,11 +72,11 @@ func (a App) AggregateMail(recipient Recipient, HTMLPattern *string) (dataMail s
 	return a.Aggregator.Aggregate(recipient, HTMLPattern)
 }
 
-func (a App) Send(mailAddr, dataMail string) error {
-	return a.Sender.Send(mailAddr, dataMail)
+func (a App) Send(mailingSendId, mailAddr, dataMail string) error {
+	return a.Sender.Send(mailingSendId, mailAddr, dataMail)
 }
 
-func (a App) SendMails(mailAddrs []string, templateId uint) error {
+func (a App) SendMails(mailingSendId string, mailAddrs []string, templateId uint) error {
 
 	pattern, err := a.GetTemplate(templateId)
 	if err != nil {
@@ -82,7 +95,7 @@ func (a App) SendMails(mailAddrs []string, templateId uint) error {
 			return fmt.Errorf("agregate mail for %s error: %s", recipient.MailAddr, err)
 		}
 
-		err = a.Send(recipient.MailAddr, dataMail)
+		err = a.Send(mailingSendId, recipient.MailAddr, dataMail)
 		if err != nil {
 			return fmt.Errorf("send mail to %s error: %s", recipient.MailAddr, err)
 		}
@@ -106,4 +119,50 @@ func (a App) GetAllTemplates() []string {
 
 func (a App) CreateTemplate(template string) (id uint) {
 	return a.Storage.CreateTemplate(template)
+}
+
+func (a App) Track(param TrackMailParam) {
+	a.Tracker.Track(param)
+}
+
+func (a App) AddMailingTask(task MailingTask) (mailingId string) {
+	return a.Storage.AddMailingTask(task)
+}
+
+func GetCecker(a *App) func() {
+	return func() {
+		for {
+			tasks := a.Storage.GetMailingTasks()
+
+			log.Println("----- Mailing Tasks ------- :")
+			for _, task := range tasks {
+				fmt.Printf("Id: %s,	Time Exec: %s\n", task.MailingSendId, task.ExecTime)
+			}
+			fmt.Println("-----------------------------")
+
+			var wg sync.WaitGroup
+
+			for _, task := range tasks {
+
+				wg.Add(1)
+
+				go func(timeToExec time.Time, mailingSendId string, mailAddrs []string, templateId uint) {
+					defer wg.Done()
+
+					time.Sleep(time.Until(timeToExec))
+
+					err := a.SendMails(mailingSendId, mailAddrs, templateId)
+					if err != nil {
+						log.Printf("mail send error: %s", err)
+					}
+
+				}(task.ExecTime, task.MailingSendId, task.MailAddrs, task.TemplateId)
+
+				wg.Wait()
+
+			}
+
+			time.Sleep(time.Minute)
+		}
+	}
 }

@@ -10,6 +10,7 @@ import (
 	"mail_sender/internal/http_server/gin_router"
 	"mail_sender/internal/sender"
 	"mail_sender/internal/storage"
+	"mail_sender/internal/tracker"
 	"os"
 )
 
@@ -32,7 +33,9 @@ func main() {
 	sender := sender.NewSender(config.Sender.From, config.Sender.Password, config.Sender.SmtpHost, config.Sender.SmtpPort)
 	log.Println("sender ready")
 
-	application := app.NewApp(storage, aggregator, sender)
+	tracker := tracker.NewTracker()
+
+	application := app.NewApp(storage, aggregator, sender, tracker)
 	log.Println("application ready")
 
 	handler := gin_router.NewHandler(application)
@@ -43,6 +46,10 @@ func main() {
 
 	server := http_server.NewServer(servConfig, router)
 	log.Println("server ready")
+
+	checker := app.GetCecker(&application)
+
+	go checker()
 
 	server.Run()
 
