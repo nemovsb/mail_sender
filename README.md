@@ -21,6 +21,8 @@ curl localhost:8081/send -X POST -d '{"mailingsendid": "1234321", "mails":["nemo
 
 curl localhost:8081/send/defer -X POST -d '{"exectime" : "2022-10-04T13:25:05Z", "mailingsendid": "1234321", "mails":["nemoff.serega@mail.ru"],"templateid": 1}'
 
+curl localhost:8081/send/defer -X POST -d '{"exectime" : "2022-11-04T16:00:05Z", "mailingsendid":"1234321", "mails":["nemoff.serega@mail.ru"],"templateid": 1}'
+
 
 curl localhost:8081/recipient/create -X POST -d '{"recipients": [{"mailaddr": "example1@gmail.com",	"name": "TestName1",	"surname": "TestSurname1",	"birthday": "13.04.1991"}, {"mailaddr": "example2@gmail.com","name": "TestName2", "surname": "TestSurname2","birthday": "20.12.1965"}]}'
 

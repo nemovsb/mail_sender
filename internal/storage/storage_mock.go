@@ -3,10 +3,12 @@ package storage
 import (
 	"log"
 	"mail_sender/internal/app"
+	"sync"
 	"time"
 )
 
 type MockStorage struct {
+	mu           sync.Mutex
 	recipients   []app.Recipient
 	templates    []string
 	mailingTasks []app.MailingTask
@@ -92,6 +94,8 @@ func (ms *MockStorage) CreateRecipients(recipients []app.Recipient) uint {
 	var check bool = true
 	numElem := 0
 
+	ms.mu.Lock()
+
 	for _, recp := range recipients {
 
 		for _, searchRecp := range ms.recipients {
@@ -108,6 +112,8 @@ func (ms *MockStorage) CreateRecipients(recipients []app.Recipient) uint {
 		}
 	}
 
+	ms.mu.Unlock()
+
 	return uint(numElem)
 
 }
@@ -118,9 +124,13 @@ func (ms *MockStorage) GetAllRecipients() []app.Recipient {
 
 func (ms *MockStorage) CreateTemplate(template string) (id uint) {
 
+	ms.mu.Lock()
+
 	ms.templates = append(ms.templates, template)
 
 	id = uint(len(ms.templates)) - 1
+
+	ms.mu.Unlock()
 
 	return id
 }
@@ -130,7 +140,12 @@ func (ms *MockStorage) GetAllTemplates() []string {
 }
 
 func (ms *MockStorage) AddMailingTask(task app.MailingTask) (SendingId string) {
+
+	ms.mu.Lock()
+
 	ms.mailingTasks = append(ms.mailingTasks, task)
+
+	ms.mu.Unlock()
 
 	log.Printf("----AddMailingTask Tasks Added: --------\n%+v\n", ms.mailingTasks)
 
@@ -146,9 +161,13 @@ func (ms *MockStorage) GetMailingTasks() []app.MailingTask {
 
 			tasks = append(tasks, task)
 
+			ms.mu.Lock()
+
 			ms.mailingTasks[i] = ms.mailingTasks[len(ms.mailingTasks)-1]
 			ms.mailingTasks[len(ms.mailingTasks)-1] = app.MailingTask{}
 			ms.mailingTasks = ms.mailingTasks[:len(ms.mailingTasks)-1]
+
+			ms.mu.Unlock()
 
 		}
 	}
