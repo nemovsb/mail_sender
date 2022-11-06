@@ -1,0 +1,11 @@
+{
+    "http_server": {
+        "port": "8081"
+    },
+    "sender": {
+        "from": "nemov.test.sb1@gmail.com",
+        "password": "***",
+        "smtphost": "smtp.gmail.com",
+        "smtpport": "587"
+    }
+}
