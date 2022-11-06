@@ -36,4 +36,15 @@ func TestGetRecipients(t *testing.T) {
 
 	require.Equal(t, recipients, expected)
 
+	req = []string{"", ""}
+
+	recipients, err = s.GetRecipients(req)
+	if err != nil {
+		fmt.Printf("error: %s\n", err)
+	}
+
+	expected = []app.Recipient{}
+
+	require.Equal(t, recipients, expected)
+
 }
