@@ -1,0 +1,10 @@
+version: "3.7"
+services:
+
+  mail_sender:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./
+    restart: always
+    ports:
+      - "8081:8081"
