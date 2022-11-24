@@ -122,7 +122,7 @@ func (ms *MockStorage) GetAllRecipients() []app.Recipient {
 	return ms.recipients
 }
 
-func (ms *MockStorage) CreateTemplate(template string) (id uint) {
+func (ms *MockStorage) CreateTemplate(template string) (id uint, err error) {
 
 	ms.mu.Lock()
 
@@ -132,11 +132,11 @@ func (ms *MockStorage) CreateTemplate(template string) (id uint) {
 
 	ms.mu.Unlock()
 
-	return id
+	return id, nil
 }
 
-func (ms *MockStorage) GetAllTemplates() []string {
-	return ms.templates
+func (ms *MockStorage) GetAllTemplates() ([]string, error) {
+	return ms.templates, nil
 }
 
 func (ms *MockStorage) AddMailingTask(task app.MailingTask) (SendingId string) {
