@@ -26,13 +26,13 @@ type Storage interface {
 	GetTemplate(id uint) (string, error)
 
 	//Get all templates from storage
-	GetAllTemplates() []string
+	GetAllTemplates() ([]string, error)
 
 	//Create recipient
 	CreateRecipients(recipients []Recipient) uint
 
 	//Create template
-	CreateTemplate(string) (id uint)
+	CreateTemplate(string) (id uint, err error)
 
 	AddMailingTask(MailingTask) string
 
