@@ -20,7 +20,7 @@ type Storage interface {
 	GetRecipients(mailAddrs []string) ([]Recipient, error)
 
 	//Get all recipients from storage
-	GetAllRecipients() []Recipient
+	GetAllRecipients() ([]Recipient, error)
 
 	//Get template by id
 	GetTemplate(id uint) (string, error)
@@ -29,14 +29,14 @@ type Storage interface {
 	GetAllTemplates() ([]string, error)
 
 	//Create recipient
-	CreateRecipients(recipients []Recipient) uint
+	CreateRecipients(recipients []Recipient) (uint, error)
 
 	//Create template
 	CreateTemplate(string) (id uint, err error)
 
-	AddMailingTask(MailingTask) string
+	AddMailingTask(MailingTask) (string, error)
 
-	GetMailingTasks() []MailingTask
+	GetMailingTasks() ([]MailingTask, error)
 }
 
 type Aggregator interface {
@@ -105,11 +105,11 @@ func (a App) SendMails(mailingSendId string, mailAddrs []string, templateId uint
 	return err
 }
 
-func (a App) AddRecipients(recipients []Recipient) uint {
+func (a App) AddRecipients(recipients []Recipient) (uint, error) {
 	return a.Storage.CreateRecipients(recipients)
 }
 
-func (a App) GetAllRecipients() []Recipient {
+func (a App) GetAllRecipients() ([]Recipient, error) {
 	return a.Storage.GetAllRecipients()
 }
 
@@ -125,14 +125,17 @@ func (a App) Track(param TrackMailParam) {
 	a.Tracker.Track(param)
 }
 
-func (a App) AddMailingTask(task MailingTask) (mailingId string) {
+func (a App) AddMailingTask(task MailingTask) (string, error) {
 	return a.Storage.AddMailingTask(task)
 }
 
-func GetCecker(a *App) func() {
+func GetChecker(a *App) func() {
 	return func() {
 		for {
-			tasks := a.Storage.GetMailingTasks()
+			tasks, err := a.Storage.GetMailingTasks()
+			if err != nil {
+				log.Println(fmt.Errorf("err : %w", err))
+			}
 
 			log.Println("----- Mailing Tasks ------- :")
 			for _, task := range tasks {

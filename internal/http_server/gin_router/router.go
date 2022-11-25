@@ -97,7 +97,12 @@ func (h Handler) DeferSend(ctx *gin.Context) {
 
 	task := http_server.GetDeferMailingTask(*req)
 
-	mailingId := h.App.AddMailingTask(task)
+	mailingId, err := h.App.AddMailingTask(task)
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError)
+		err = ctx.Error(err)
+		return
+	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"mailingSendId": mailingId,
@@ -114,7 +119,13 @@ func (h Handler) CreateRecipients(ctx *gin.Context) {
 		return
 	}
 
-	res := h.App.CreateRecipients(req.Recipients)
+	res, err := h.App.CreateRecipients(req.Recipients)
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError)
+		err = ctx.Error(err)
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"recipientsAdded": res,
 	})
@@ -122,7 +133,14 @@ func (h Handler) CreateRecipients(ctx *gin.Context) {
 
 func (h Handler) GetRecipients(ctx *gin.Context) {
 
-	ctx.JSON(http.StatusOK, h.App.GetAllRecipients())
+	res, err := h.App.GetAllRecipients()
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError)
+		err = ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
 
 }
 func (h Handler) CreateTemplate(ctx *gin.Context) {

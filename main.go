@@ -47,7 +47,7 @@ func main() {
 	server := http_server.NewServer(servConfig, router)
 	log.Println("server ready")
 
-	checker := app.GetCecker(&application)
+	checker := app.GetChecker(&application)
 
 	go checker()
 

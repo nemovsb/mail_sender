@@ -89,7 +89,7 @@ func (ms *MockStorage) GetTemplate(id uint) (string, error) {
 	return ms.templates[id], nil
 }
 
-func (ms *MockStorage) CreateRecipients(recipients []app.Recipient) uint {
+func (ms *MockStorage) CreateRecipients(recipients []app.Recipient) (uint, error) {
 
 	var check bool = true
 	numElem := 0
@@ -114,12 +114,12 @@ func (ms *MockStorage) CreateRecipients(recipients []app.Recipient) uint {
 
 	ms.mu.Unlock()
 
-	return uint(numElem)
+	return uint(numElem), nil
 
 }
 
-func (ms *MockStorage) GetAllRecipients() []app.Recipient {
-	return ms.recipients
+func (ms *MockStorage) GetAllRecipients() ([]app.Recipient, error) {
+	return ms.recipients, nil
 }
 
 func (ms *MockStorage) CreateTemplate(template string) (id uint, err error) {
@@ -139,7 +139,7 @@ func (ms *MockStorage) GetAllTemplates() ([]string, error) {
 	return ms.templates, nil
 }
 
-func (ms *MockStorage) AddMailingTask(task app.MailingTask) (SendingId string) {
+func (ms *MockStorage) AddMailingTask(task app.MailingTask) (SendingId string, err error) {
 
 	ms.mu.Lock()
 
@@ -149,10 +149,10 @@ func (ms *MockStorage) AddMailingTask(task app.MailingTask) (SendingId string) {
 
 	log.Printf("----AddMailingTask Tasks Added: --------\n%+v\n", ms.mailingTasks)
 
-	return task.MailingSendId
+	return task.MailingSendId, nil
 }
 
-func (ms *MockStorage) GetMailingTasks() []app.MailingTask {
+func (ms *MockStorage) GetMailingTasks() ([]app.MailingTask, error) {
 
 	tasks := []app.MailingTask{}
 	for i, task := range ms.mailingTasks {
@@ -172,5 +172,5 @@ func (ms *MockStorage) GetMailingTasks() []app.MailingTask {
 		}
 	}
 
-	return tasks
+	return tasks, nil
 }
