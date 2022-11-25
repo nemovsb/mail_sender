@@ -113,11 +113,11 @@ func (a App) GetAllRecipients() []Recipient {
 	return a.Storage.GetAllRecipients()
 }
 
-func (a App) GetAllTemplates() []string {
+func (a App) GetAllTemplates() ([]string, error) {
 	return a.Storage.GetAllTemplates()
 }
 
-func (a App) CreateTemplate(template string) (id uint) {
+func (a App) CreateTemplate(template string) (id uint, err error) {
 	return a.Storage.CreateTemplate(template)
 }
 

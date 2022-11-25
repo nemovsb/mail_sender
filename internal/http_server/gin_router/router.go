@@ -134,7 +134,12 @@ func (h Handler) CreateTemplate(ctx *gin.Context) {
 		return
 	}
 
-	id := h.App.CreateTemplate(req.Template)
+	id, err := h.App.CreateTemplate(req.Template)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"templateid": id,
 	})
@@ -142,7 +147,11 @@ func (h Handler) CreateTemplate(ctx *gin.Context) {
 
 func (h Handler) GetAllTemplates(ctx *gin.Context) {
 
-	templates := h.App.GetAllTemplates()
+	templates, err := h.App.GetAllTemplates()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, err)
+		return
+	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"templates": templates,

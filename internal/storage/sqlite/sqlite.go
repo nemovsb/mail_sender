@@ -41,7 +41,9 @@ func New(path string) (*Storage, error) {
 func (s *Storage) CreateRecipients(recipients []app.Recipient) (rowsCount uint, err error) {
 
 	insertQuery, err := s.db.Prepare(`INSERT INTO recipients (mail_addr, name, surname, birthday) VALUES (?, ?, ?, ?);`)
-
+	if err != nil {
+		return 0, fmt.Errorf("can't create recipients: %w", err)
+	}
 	tx, err := s.db.Begin()
 	if err != nil {
 		return 0, fmt.Errorf("can't create recipients: %w", err)
@@ -54,6 +56,9 @@ func (s *Storage) CreateRecipients(recipients []app.Recipient) (rowsCount uint, 
 			return 0, fmt.Errorf("can't create recipient (mail = %s): %w", recp.MailAddr, err)
 		}
 		rows, err := res.RowsAffected()
+		if err != nil {
+			return 0, fmt.Errorf("can't create recipients: %w", err)
+		}
 		rowsCount += uint(rows)
 	}
 	err = tx.Commit()
@@ -64,15 +69,44 @@ func (s *Storage) CreateRecipients(recipients []app.Recipient) (rowsCount uint, 
 
 }
 
-// // Get recipients by email-adresses
-// func (s *Storage) GetRecipients(mailAddrs []string) ([]app.Recipient, error) {
+// Get recipients by email-adresses
+func (s *Storage) GetRecipients(mailAddrs []string) ([]app.Recipient, error) {
+	q := `
+	SELECT mail_addr, name, surname, birthday
+	FROM recipients 
+	WHERE recipients.mail_addr IN ?;`
 
-// }
+	res := make([]app.Recipient, 0)
 
-// // Get all recipients from storage
-// func (s *Storage) GetAllRecipients() []app.Recipient {
+	err := s.db.QueryRowContext(context.TODO(), q, mailAddrs).Scan(&res)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("recipient with mails = %v does not exist : %w", mailAddrs, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("can't get recipient : %w", err)
+	}
 
-// }
+	return res, nil
+}
+
+// Get all recipients from storage
+func (s *Storage) GetAllRecipients() ([]app.Recipient, error) {
+	q := `
+	SELECT mail_addr, name, surname, birthday
+	FROM recipients;`
+
+	res := make([]app.Recipient, 0)
+
+	err := s.db.QueryRowContext(context.TODO(), q).Scan(&res)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("no ecipients : %w", err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("can't get recipient : %w", err)
+	}
+
+	return res, nil
+}
 
 // Create template
 func (s *Storage) CreateTemplate(templ string) (uint, error) {
@@ -132,10 +166,48 @@ func (s *Storage) GetAllTemplates() (templs []string, err error) {
 	return templs, nil
 }
 
-// func (s *Storage) AddMailingTask(app.MailingTask) string {
+// CREATE TABLE IF NOT EXISTS mailing_tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, exec_time TEXT, mailing_send_id TEXT, mail_addrs TEXT, template_id INTEGER);
+func (s *Storage) AddMailingTask(tasks app.MailingTask) (string, error) {
 
-// }
+	insertQuery, err := s.db.Prepare(`INSERT INTO mailing_tasks (exec_time, mailing_send_id, mail_addrs, template_id) VALUES (?, ?, ?, ?);`)
 
-// func (s *Storage) GetMailingTasks() []app.MailingTask {
+	if err != nil {
+		return "", fmt.Errorf("can't create task: %w", err)
+	}
+	tx, err := s.db.Begin()
+	if err != nil {
+		return "", fmt.Errorf("can't create recipients: %w", err)
+	}
 
-// }
+	for _, mailAddress := range tasks.MailAddrs {
+		_, err := tx.Stmt(insertQuery).Exec(tasks.ExecTime, tasks.MailingSendId, mailAddress, tasks.TemplateId)
+		if err != nil {
+			tx.Rollback()
+			return "", fmt.Errorf("can't create task (mail = %s): %w", mailAddress, err)
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return "", fmt.Errorf("can't create task: %w", err)
+	}
+	return tasks.MailingSendId, err
+}
+
+func (s *Storage) GetMailingTasks() ([]app.MailingTask, error) {
+
+	q := `
+	SELECT exec_time, mailing_send_id, mail_addrs, template_id
+	FROM mailing_tasks;`
+
+	res := make([]app.MailingTask, 0)
+
+	err := s.db.QueryRowContext(context.TODO(), q).Scan(&res)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("no tasks! : %w", err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("can't get tasks : %w", err)
+	}
+
+	return res, nil
+}
